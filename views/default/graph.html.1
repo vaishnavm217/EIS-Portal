@@ -1,0 +1,97 @@
+{{extend 'layout.html'}}
+<script src="//www.amcharts.com/lib/3/amcharts.js"></script>
+<script src="//www.amcharts.com/lib/3/serial.js"></script>
+<script src="//www.amcharts.com/lib/3/themes/light.js"></script>
+<script>
+var chartData = [];
+/**
+ * Function that generates random data
+ */
+
+{{for i in data:}}
+chartData.push(
+    {
+        date:new Date({{=i['time']*1000}}),
+        power:{{=i['power']}}
+    }
+);
+{{pass}}
+var chart = AmCharts.makeChart( "chartdiv", {
+  "type": "serial",
+  "theme": "light",
+  "zoomOutButton": {
+    "backgroundColor": '#000000',
+    "backgroundAlpha": 0.15
+  },
+  "dataProvider": chartData,
+  "categoryField": "date",
+  "categoryAxis": {
+    "parseDates": true,
+      "minPeriod": "ss",
+    "dashLength": 1,
+    "gridAlpha": 0.15,
+    "axisColor": "#DADADA"
+  },
+  "graphs": [ {
+    "id": "g1",
+    "valueField": "power",
+    "bullet": "round",
+    "bulletBorderColor": "#FFFFFF",
+    "bulletBorderThickness": 2,
+    "lineThickness": 2,
+    "lineColor": "#b5030d",
+    "hideBulletsCount": 50
+  } ],
+  "chartCursor": {
+    "cursorPosition": "mouse"
+  },
+  "chartScrollbar": {
+    "graph": "g1",
+    "scrollbarHeight": 40,
+    "color": "#FFFFFF",
+    "autoGridCount": true
+  }
+} );
+setInterval( function() {
+  // normally you would load new datapoints here,
+  // but we will just generate some random values
+  // and remove the value from the beginning so that
+  // we get nice sliding graph feeling
+
+  // remove datapoint from the beginning
+ajax("{{=URL('default','retseconds')}}",[],"temp");
+  var newDate =new Date(parseInt(document.getElementById("temp").innerHTML)*1000);
+console.log("new date"+newDate);
+ajax("{{=URL('default','ret_last_power')}}",[],"temp1");
+ajax("{{=URL('default','ret_curr')}}",[],"Curr");
+ajax("{{=URL('default','ret_max')}}",[],"Currli");
+  var powr = document.getElementById("temp1").innerHTML;
+ console.log(document.getElementById("temp1").innerHTML)
+  // add new one at the end
+if(!isNaN(newDate.getTime())){
+  chart.dataProvider.push( {
+    date: newDate,
+    power: powr
+  } );
+  chart.dataProvider.shift();
+}
+  chart.validateData();
+}, 2000 );
+</script>
+<body>
+<div id="chartdiv" style="width:100%;height:300px;">
+</div>
+<div id="temp" style="display:none"></div>
+<div id="temp1" style="display:none"></div>
+<h1>Current power:</h1>
+<h2>
+    <div id="Curr"></div>
+    </h2>
+<h1> KWh</h1><br>
+<h1>Current limit:</h1>
+<h2>
+    <div id="Currli"></div>
+    </h2>
+<h1>KWh
+    </h1>
+</body>

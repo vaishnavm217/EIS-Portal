@@ -1,0 +1,4 @@
+{{extend 'layout.html'}}
+<h1>
+    Energy Monitoring System
+</h1>
