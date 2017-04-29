@@ -12,6 +12,8 @@ from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 from datetime import datetime
 import time
+from collections import OrderedDict
+slab_rate=OrderedDict([((0,50),1.45),((51,100),2.6),((101,200),3.6),((201,10000),6.9)])
 def index():
     """
     example action using the internationalization operator T and flash
@@ -25,7 +27,7 @@ def index():
 def graph():
     t=db().select(db.instap.ALL)
     if len(t)>50:
-        t=t[:50]
+        t=t[-50:]
     data=[]
     for i in t:
         data.append({
@@ -62,37 +64,35 @@ def getdata():
         db.p_limit.insert(cur=p,max_limit=50000)
     else:
         cur1=float(db().select(db.p_limit.ALL)[0].cur)+float(p)
+        cost=0
+        for i in slab_rate.keys():
+            if cur1>=i[1]:
+                cost+=(i[1]-i[0])*slab_rate[i]
+            elif cur1>i[0]:
+                cost+=(cur1-i[0])*slab_rate[i]
+        i=slab_rate.keys()[-1]
+        if(cur1>i[1]):
+            cost+=(cur1-i[1])*slab_rate[i]
+            
         max_limit=float(db().select(db.p_limit.ALL)[0].max_limit)
+        fromaddr = "projectenergy666@gmail.com"
+        toaddr = auth.user.email
+        msg = MIMEMultipart()
+        msg['From'] = fromaddr
+        msg['To'] = toaddr
         if cur1==(0.5*max_limit):
-            fromaddr = "projectenergy666@gmail.com"
-            toaddr = "sriram.t15@iiits.in"
-            msg = MIMEMultipart()
-            msg['From'] = fromaddr
-            msg['To'] = toaddr
             msg['Subject'] = "Consumption of Power reaching 50% of your Limit"
-            body = "You Sir/Madam have been using a lot of energy. You have reached 50% of your limit. Save power or the klan is coming for you. Long live KKK."
-            msg.attach(MIMEText(body, 'plain'))
-            server = smtplib.SMTP('smtp.gmail.com', 587)
-            server.starttls()
-            server.login(fromaddr, "zombieslayer69")
-            text = msg.as_string()
-            server.sendmail(fromaddr, toaddr, text)
-            server.quit()
+            body = "You Sir/Madam have been using a lot of energy. You have reached 50% of your limit. Bill Amount: "+str(cost)+"Rs."
         elif cur1>=max_limit:
-            fromaddr = "projectenergy666@gmail.com"
-            toaddr = "sriram.t15@iiits.in"
-            msg = MIMEMultipart()
-            msg['From'] = fromaddr
-            msg['To'] = "sriram.t15@iiits.in"
-            msg['Subject'] = "Energy consumption has reached your limit."
-            body = "You Sir/Madam have just been over-using the resource bestowed upon you by Mother nature and your government. You should learn to save power. You have just reached 100% of your limit. Your current power usage is "+str(cur1)+"KWh. Shame on you. Save power or the klan is coming for you. Long live KKK."
-            msg.attach(MIMEText(body, 'plain'))
-            server = smtplib.SMTP('smtp.gmail.com', 587)
-            server.starttls()
-            server.login(fromaddr, "zombieslayer69")
-            text = msg.as_string()
-            server.sendmail(fromaddr, toaddr, text)
-            server.quit()
+            msg['Subject'] ="Energy consumption has reached your limit."
+            body = "You have just reached 100% of your limit. Your current power usage is "+str(cur1)+"KWh. Bill Amount: "+str(cost)+"Rs."
+        msg.attach(MIMEText(body, 'plain'))
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(fromaddr, "zombieslayer69")
+        text = msg.as_string()
+        server.sendmail(fromaddr, toaddr, text)
+        server.quit()
         if len(db().select(db.dailyp.ALL))==30:
             cur1=0
         db(db.p_limit.id==2).update(cur=cur1)
@@ -128,3 +128,16 @@ def ret_curr():
 def ret_max():
     last=db().select(db.p_limit.ALL)[0]
     return last['max_limit']
+def ret_cost():
+    last=db().select(db.p_limit.ALL)[0]
+    cur1=last['cur']
+    cost=0
+    for i in slab_rate.keys():
+        if cur1>=i[1]:
+            cost+=(i[1]-i[0])*slab_rate[i]
+        elif cur1>i[0]:
+            cost+=(cur1-i[0])*slab_rate[i]
+    i=slab_rate.keys()[-1]
+    if(cur1>i[1]):
+        cost+=(cur1-i[1])*slab_rate[i]
+    return cost

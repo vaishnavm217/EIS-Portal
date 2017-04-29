@@ -2,6 +2,8 @@
 <script src="//www.amcharts.com/lib/3/amcharts.js"></script>
 <script src="//www.amcharts.com/lib/3/serial.js"></script>
 <script src="//www.amcharts.com/lib/3/themes/light.js"></script>
+<script src="//www.amcharts.com/lib/3/themes/light.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 <script>
 var chartData = [];
 /**
@@ -65,9 +67,11 @@ console.log("new date"+newDate);
 ajax("{{=URL('default','ret_last_power')}}",[],"temp1");
 ajax("{{=URL('default','ret_curr')}}",[],"Curr");
 ajax("{{=URL('default','ret_max')}}",[],"Currli");
+ajax("{{=URL('default','ret_cost')}}",[],"Cost");
   var powr = document.getElementById("temp1").innerHTML;
  console.log(document.getElementById("temp1").innerHTML)
   // add new one at the end
+
 if(!isNaN(newDate.getTime())){
   chart.dataProvider.push( {
     date: newDate,
@@ -83,6 +87,11 @@ if(!isNaN(newDate.getTime())){
 </div>
 <div id="temp" style="display:none"></div>
 <div id="temp1" style="display:none"></div>
+<h1> Bill Amount:</h1>
+<h2>
+   <i class="fa fa-inr fa-lg" id="Cost"></i>
+</h2>
+
 <h1>Current power:</h1>
 <h2>
     <div id="Curr"></div>

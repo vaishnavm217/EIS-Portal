@@ -132,3 +132,4 @@ auth.settings.reset_password_requires_verification = True
 # auth.enable_record_versioning(db)
 db.define_table('instap',Field('timestamp','datetime'),Field('power','double'))
 db.define_table('dailyp',Field('timestamp','datetime'),Field('power','double'))
+db.define_table('p_limit',Field('cur','float'),Field('max_limit','float'))
